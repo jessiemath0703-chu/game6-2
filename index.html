@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jessie Math 基準量大冒險</title>
+    <style>
+        :root {
+            --primary: #5D9CEC; /* 配合您網站的藍色系 */
+            --accent: #F5A623;
+            --success: #8CC152;
+            --danger: #DA4453;
+            --bg: #F5F7FA;
+            --text: #434A54;
+        }
+
+        body {
+            font-family: '微軟正黑體', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* --- 頂部導航列 (仿造您的網站風格) --- */
+        .header-bar {
+            width: 100%;
+            height: 80px;
+            background: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* 左右分開 */
+            padding: 0 30px;
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+        }
+
+        /* 左側品牌區 */
+        .brand-container {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            gap: 15px;
+        }
+
+        .avatar-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            overflow: hidden; /* 讓圖片切成圓形 */
+            background-color: #eee;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .avatar-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 關鍵：保持比例填滿 */
+        }
+
+        .brand-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+        }
+
+        /* 右側數據區 */
+        .stats-panel {
+            display: flex;
+            gap: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .stat-item {
+            background: #f0f4f8;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* --- 遊戲主區域 --- */
+        #game-container {
+            margin-top: 100px; /* 避開 Header */
+            width: 90%;
+            max-width: 800px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 30px;
+            position: relative;
+            min-height: 500px;
+            box-sizing: border-box;
+        }
+
+        /* --- 覆蓋層 (開始/過場/結束) --- */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.98);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+        }
+        .hidden { display: none !important; }
+
+        h1 { color: var(--primary); margin: 0 0 10px 0; }
+        .tag { background: var(--accent); color: white; padding: 4px 12px; border-radius: 10px; font-size: 0.9rem; margin-bottom: 20px; display: inline-block; }
+
+        input[type="text"] {
+            padding: 12px;
+            font-size: 1.2rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            width: 250px;
+        }
+        input:focus { border-color: var(--primary); outline: none; }
+
+        .btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #6A9A3C;
+            transition: 0.1s;
+            font-weight: bold;
+        }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn-blue { background: var(--primary); box-shadow: 0 4px 0 #4A89DC; }
+
+        /* --- 遊戲畫面元素 --- */
+        .question-box {
+            background: #E6F7FF;
+            border-left: 5px solid var(--primary);
+            padding: 20px;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .highlight { color: var(--danger); font-weight: bold; }
+
+        .instruction {
+            color: #888;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            min-height: 1.5em;
+        }
+
+        .stage {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 300px;
+            border-bottom: 3px solid #eee;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+
+        .character {
+            width: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+        .character:hover { transform: scale(1.05); }
+        .character.disabled { cursor: default; opacity: 0.7; transform: none; }
+
+        .slime-body {
+            width: 80px;
+            height: 60px; /* 初始高度 */
+            background-color: #CCD1D9;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            transition: height 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.3s;
+            position: relative;
+        }
+
+        .char-label {
+            margin-top: 10px;
+            background: #eee;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .crown {
+            position: absolute;
+            top: -50px;
+            font-size: 40px;
+            display: none;
+            animation: bounce 0.6s infinite alternate;
+        }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+        /* --- 滑桿控制區 --- */
+        .controls {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            display: none; /* JS 控制顯示 */
+        }
+        input[type=range] {
+            width: 80%;
+            margin: 20px 0;
+            -webkit-appearance: none;
+            height: 12px;
+            background: #ddd;
+            border-radius: 6px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 30px;
+            height: 30px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            border: 3px solid white;
+        }
+        .val-display { font-size: 2rem; color: var(--primary); font-weight: 800; margin-left: 10px; }
+
+        /* --- 排行榜 --- */
+        .leaderboard-list {
+            width: 100%;
+            max-width: 400px;
+            text-align: left;
+            margin-top: 20px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .rank-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .rank-row:last-child { border-bottom: none; }
+        .rank-row.header { background: #f5f5f5; color: #888; font-size: 0.9rem; }
+        .rank-row.highlight { background: #E6F7FF; font-weight: bold; color: var(--primary); }
+
+    </style>
+</head>
+<body>
+
+    <header class="header-bar">
+        <a href="https://jessiemath0703-chu.github.io/website2/" target="_blank" class="brand-container">
+            <div class="avatar-circle">
+                <img src="JESSIEMATH-Q.PNG.jpg" alt="Jessie" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Jessie'">
+            </div>
+            <span class="brand-text">Jessie Math</span>
+        </a>
+
+        <div class="stats-panel">
+            <div class="stat-item">
+                <span>🏆</span> <span id="score-disp">0</span>
+            </div>
+            <div class="stat-item">
+                <span>⏳</span> <span id="time-disp">0</span>s
+            </div>
+        </div>
+    </header>
+
+    <div id="game-container">
+
+        <div id="screen-start" class="overlay">
+            <h1>🧪 基準量實驗室</h1>
+            <p>輸入名字，準備開始你的數學實驗！</p>
+            <input type="text" id="player-name" placeholder="請輸入你的名字..." maxlength="10">
+            <br>
+            <button class="btn" onclick="game.init()">開始遊戲</button>
+        </div>
+
+        <div id="screen-level" class="overlay hidden">
+            <span class="tag" id="level-tag">Level 1</span>
+            <h1 id="level-title">尋找基準量</h1>
+            <p id="level-desc" style="color:#666; margin:20px 0;">點擊題目中「原本」的角色！</p>
+            <button class="btn btn-blue" onclick="game.startLevel()">GO!</button>
+        </div>
+
+        <div id="screen-end" class="overlay hidden">
+            <h1>實驗結束! 🎉</h1>
+            <p>你的最終分數：<span id="final-score" style="font-size:2rem; color:var(--accent); font-weight:bold;">0</span></p>
+            
+            <div class="leaderboard-list">
+                <div class="rank-row header">
+                    <span>排名 / 名字</span>
+                    <span>分數</span>
+                </div>
+                <div id="leaderboard-content">
+                    </div>
+            </div>
+            <br>
+            <button class="btn" onclick="location.reload()">再玩一次</button>
+        </div>
+
+        <div class="question-box" id="q-text">題目載入中...</div>
+        <div class="instruction" id="hint-text">請依照指示操作</div>
+
+        <div class="stage">
+            <div class="character" id="char-A" onclick="game.handleBaseClick('A')">
+                <div class="crown">👑</div>
+                <div class="slime-body"><span class="face">🐶</span></div>
+                <div class="char-label" id="name-A">小狗</div>
+            </div>
+
+            <div class="character" id="char-B" onclick="game.handleBaseClick('B')">
+                <div class="crown">👑</div>
+                <div class="slime-body"><span class="face">🐱</span></div>
+                <div class="char-label" id="name-B">小貓</div>
+            </div>
+        </div>
+
+        <div class="controls" id="controls">
+            <p>調整比較量：<span class="val-display" id="slider-val">+0</span></p>
+            <input type="range" id="slider" min="-5" max="5" step="1" value="0" oninput="game.updateSlider(this.value)">
+            <br><br>
+            <button class="btn btn-blue" onclick="game.submitSlider()">確認變形</button>
+        </div>
+
+    </div>
+
+<script>
+class GameSystem {
+    constructor() {
+        this.playerName = "玩家";
+        this.score = 0;
+        this.level = 1;
+        this.timer = 0;
+        this.timerInterval = null;
+        this.baseHeight = 60; // 史萊姆基礎高度
+        
+        // 假排行榜資料
+        this.leaderboard = [
+            {name: '數學天才', score: 1200},
+            {name: 'Jessie老師', score: 1100},
+            {name: '路人甲', score: 800}
+        ];
+
+        this.qData = null; // 當前題目資料
+        this.levelConfig = {
+            1: { title: "尋找基準量", desc: "只需要點擊「原本是誰」，不用算！", count: 3 },
+            2: { title: "尋找比較量", desc: "基準量固定了，請調整滑桿做出變化！", count: 3 },
+            3: { title: "混合挑戰", desc: "先找基準，再調變化，小心陷阱！", count: 4 }
+        };
+        this.qCount = 0; // 當前關卡第幾題
+    }
+
+    // 初始化
+    init() {
+        const name = document.getElementById('player-name').value.trim();
+        if(!name) { alert("請輸入名字！"); return; }
+        this.playerName = name;
+        document.getElementById('screen-start').classList.add('hidden');
+        this.showLevelIntro(1);
+        
+        // 啟動計時
+        this.timerInterval = setInterval(() => {
+            this.timer++;
+            document.getElementById('time-disp').innerText = this.timer;
+        }, 1000);
+    }
+
+    showLevelIntro(lvl) {
+        this.level = lvl;
+        this.qCount = 0;
+        const cfg = this.levelConfig[lvl];
+        
+        document.getElementById('level-tag').innerText = `Level ${lvl}`;
+        document.getElementById('level-title').innerText = cfg.title;
+        document.getElementById('level-desc').innerText = cfg.desc;
+        document.getElementById('screen-level').classList.remove('hidden');
+    }
+
+    startLevel() {
+        document.getElementById('screen-level').classList.add('hidden');
+        this.nextQuestion();
+    }
+
+    nextQuestion() {
+        const cfg = this.levelConfig[this.level];
+        if (this.qCount >= cfg.count) {
+            // 該關卡結束
+            if (this.level < 3) {
+                this.showLevelIntro(this.level + 1);
+            } else {
+                this.gameOver();
+            }
+            return;
+        }
+        
+        this.qCount++;
+        this.resetUI();
+        this.generateQuestion();
+    }
+
+    resetUI() {
+        document.getElementById('controls').style.display = 'none';
+        ['A', 'B'].forEach(id => {
+            const el = document.getElementById('char-'+id);
+            el.classList.remove('disabled');
+            el.style.pointerEvents = 'auto';
+            el.querySelector('.crown').style.display = 'none';
+            const body = el.querySelector('.slime-body');
+            body.style.height = this.baseHeight + 'px';
+            body.style.backgroundColor = '#CCD1D9';
+        });
+        document.getElementById('slider').value = 0;
+        document.getElementById('slider-val').innerText = "0";
+    }
+
+    generateQuestion() {
+        // 隨機生成角色與題目
+        const roles = [
+            {A:'紅箱', B:'藍箱', fA:'🟥', fB:'🟦'},
+            {A:'哥哥', B:'弟弟', fA:'👦', fB:'👶'},
+            {A:'蘋果', B:'橘子', fA:'🍎', fB:'🍊'}
+        ];
+        const r = roles[Math.floor(Math.random()*roles.length)];
+        
+        // 隨機決定題型 (差 / 倍)
+        const type = Math.random() > 0.5 ? 'diff' : 'ratio';
+        // 隨機決定誰是基準 (Base)
+        const isBaseA = Math.random() > 0.5;
+        
+        const baseObj = isBaseA ? 'A' : 'B';
+        const targetObj = isBaseA ? 'B' : 'A';
+        const baseName = isBaseA ? r.A : r.B;
+        const targetName = isBaseA ? r.B : r.A;
+        
+        let qText = "";
+        let val = 0;
+        let mode = ""; // +, -, x
+
+        if (type === 'diff') {
+            val = Math.floor(Math.random()*4) + 1; // 1~4
+            const isMore = Math.random() > 0.5;
+            // 題目邏輯：Target 比 Base (多/少) val
+            qText = `${targetName} 比 ${baseName} <span class="highlight">${isMore?'多':'少'} ${val}</span>`;
+            mode = isMore ? '+' : '-';
+            val = isMore ? val : -val;
+        } else {
+            val = Math.floor(Math.random()*3) + 2; // 2~4倍
+            qText = `${targetName} 是 ${baseName} 的 <span class="highlight">${val} 倍</span>`;
+            mode = 'x';
+        }
+
+        // 渲染畫面
+        document.getElementById('q-text').innerHTML = qText;
+        document.getElementById('name-A').innerText = r.A;
+        document.getElementById('name-B').innerText = r.B;
+        document.querySelector('#char-A .face').innerText = r.fA;
+        document.querySelector('#char-B .face').innerText = r.fB;
+
+        this.qData = { base: baseObj, target: targetObj, type, mode, val };
+
+        // 根據關卡設定狀態
+        if (this.level === 1) {
+            document.getElementById('hint-text').innerText = "👇 請點擊基準量（這句話原本是誰？）";
+            this.state = 'pick_base';
+        } else if (this.level === 2) {
+            // 自動選好基準，直接玩滑桿
+            this.visualizeBase(baseObj);
+            document.getElementById('hint-text').innerText = "👇 請拖拉滑桿，讓比較量正確！";
+            this.showSlider();
+            this.state = 'slider';
+        } else {
+            // Level 3
+            document.getElementById('hint-text').innerText = "第一步：先找出基準量";
+            this.state = 'pick_base';
+        }
+    }
+
+    // 處理點擊
+    handleBaseClick(id) {
+        if (this.state !== 'pick_base') return;
+
+        if (id === this.qData.base) {
+            // 答對
+            this.addScore(50);
+            this.visualizeBase(id);
+            this.showMsg("✅ 找對了！", true);
+            
+            if (this.level === 1) {
+                setTimeout(() => this.nextQuestion(), 1000);
+            } else {
+                // Level 3 進下一階
+                this.state = 'slider';
+                document.getElementById('hint-text').innerText = "第二步：調整滑桿";
+                this.showSlider();
+            }
+        } else {
+            this.addScore(-10);
+            this.showMsg("❌ 找錯囉，再想想！", false);
+        }
+    }
+
+    visualizeBase(id) {
+        const el = document.getElementById('char-'+id);
+        el.querySelector('.crown').style.display = 'block';
+        el.querySelector('.slime-body').style.backgroundColor = '#F5A623'; // Base 顏色
+        // 鎖定另一個
+        const other = id === 'A' ? 'B' : 'A';
+        document.getElementById('char-'+other).classList.add('disabled');
+    }
+
+    showSlider() {
+        const box = document.getElementById('controls');
+        const slider = document.getElementById('slider');
+        box.style.display = 'block';
+        
+        if (this.qData.type === 'ratio') {
+            slider.min = 1; slider.max = 5; slider.step = 0.5; slider.value = 1;
+        } else {
+            slider.min = -5; slider.max = 5; slider.step = 1; slider.value = 0;
+        }
+        this.updateSlider(slider.value);
+    }
+
+    updateSlider(val) {
+        const display = document.getElementById('slider-val');
+        const targetBody = document.querySelector(`#char-${this.qData.target} .slime-body`);
+        
+        let h = this.baseHeight;
+        let txt = "";
+
+        if (this.qData.type === 'ratio') {
+            txt = `× ${val}`;
+            h = this.baseHeight * parseFloat(val);
+        } else {
+            const sign = val > 0 ? '+' : '';
+            txt = `${sign}${val}`;
+            h = this.baseHeight + (parseInt(val) * 20);
+        }
+        
+        display.innerText = txt;
+        targetBody.style.height = Math.max(10, h) + "px";
+        targetBody.style.backgroundColor = '#5D9CEC'; // 比較量變色
+    }
+
+    submitSlider() {
+        const val = parseFloat(document.getElementById('slider').value);
+        if (val === this.qData.val) {
+            this.addScore(100);
+            this.showMsg("🎉 變形成功！", true);
+            setTimeout(() => this.nextQuestion(), 1500);
+        } else {
+            this.showMsg("數值不對喔！", false);
+            this.addScore(-10);
+        }
+    }
+
+    showMsg(txt, isGood) {
+        const el = document.getElementById('hint-text');
+        el.innerText = txt;
+        el.style.color = isGood ? 'var(--success)' : 'var(--danger)';
+    }
+
+    addScore(pts) {
+        this.score += pts;
+        document.getElementById('score-disp').innerText = this.score;
+    }
+
+    gameOver() {
+        clearInterval(this.timerInterval);
+        document.getElementById('screen-end').classList.remove('hidden');
+        document.getElementById('final-score').innerText = this.score;
+        this.updateLeaderboard();
+    }
+
+    updateLeaderboard() {
+        this.leaderboard.push({name: this.playerName, score: this.score});
+        this.leaderboard.sort((a,b) => b.score - a.score);
+        
+        const list = document.getElementById('leaderboard-content');
+        list.innerHTML = "";
+        
+        this.leaderboard.slice(0, 5).forEach((p, i) => {
+            const div = document.createElement('div');
+            div.className = "rank-row";
+            if (p.name === this.playerName && p.score === this.score) div.classList.add('highlight');
+            div.innerHTML = `<span>#${i+1} ${p.name}</span><span>${p.score}</span>`;
+            list.appendChild(div);
+        });
+    }
+}
+
+const game = new GameSystem();
+</script>
+</body>
+</html>
